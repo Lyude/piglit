@@ -3335,7 +3335,21 @@ piglit_display(void)
 							expected))
 				result = PIGLIT_FAIL;
 
-		} else if (parse_str(line, "probe all rgba ", &rest)) {
+		} else if (parse_str(rest, "polygon mode ", &rest)) {
+                        GLenum face, mode;
+
+                        REQUIRE(parse_enum_gl(rest, &face, &rest) &&
+                                parse_enum_gl(rest, &mode, &rest),
+                                "Polygon mode command not understood at %s\n",
+                                rest);
+
+                        glPolygonMode(face, mode);
+
+                        if (!piglit_check_gl_error(GL_NO_ERROR)) {
+                                fprintf(stderr, "glPolygonMode error\n");
+                                piglit_report_result(PIGLIT_FAIL);
+                        }
+                } else if (parse_str(line, "probe all rgba ", &rest)) {
 			parse_floats(rest, c, 4, NULL);
 			if (result != PIGLIT_FAIL &&
 			    !piglit_probe_rect_rgba(0, 0, read_width,
