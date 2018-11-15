@@ -29,6 +29,7 @@ import os
 import os.path as path
 import sys
 import errno
+import re
 
 import six
 
@@ -40,8 +41,9 @@ __all__ = [
     'console',
     'csv',
     'html',
-    'feature'
-    'formatted'
+    'feature',
+    'formatted',
+    'details',
 ]
 
 DEFAULT_FMT_STR="{name} ::: {time} ::: {returncode} ::: {result}"
@@ -322,3 +324,40 @@ def feature(input_):
                 args.summaryDir))
 
     summary.feat(args.resultsFiles, args.summaryDir, args.featureFile)
+
+@exceptions.handler
+def details(input_):
+    def regex_arg(arg):
+        try:
+            return re.compile(arg)
+        except re.error as e:
+            raise argparse.ArgumentTypeError(
+                "{msg} at position {pos} for '{re}'".format(
+                    msg=e.msg, pos=e.pos, re=e.pattern))
+
+    # Generate the possible choices for filtering tests by their status
+    status_choices = [s.name for s in status.ALL]
+
+    """Combine files in a tests/ directory into a single results file."""
+    unparsed = parsers.parse_config(input_)[1]
+
+    # Adding the parent is necessary to get the help options
+    parser = argparse.ArgumentParser(parents=[parsers.CONFIG])
+
+    parser.add_argument("results",
+                        metavar="<Results Path>",
+                        help="Path to results file")
+
+    parser.add_argument("regex",
+                        nargs="*", type=regex_arg,
+                        help="Only show tests matching the given regexes")
+    parser.add_argument("-s", "--status",
+                        help=("Only show tests matching the given status"
+                              " (may be specified more then once for multiple"
+                              " status types)"),
+                        type=status.status_lookup,
+                        choices=[s.name for s in status.ALL], action='append')
+
+    args = parser.parse_args(unparsed)
+    summary.details(args.results, args.regex,
+                    set(args.status) if args.status else None)

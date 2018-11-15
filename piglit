@@ -161,6 +161,10 @@ def main():
                                         add_help=False,
                                         help="generate feature readiness html report.")
     feature.set_defaults(func=summary.feature)
+    details = summary_parser.add_parser('details',
+                                        add_help=False,
+                                        help="print detailed information on a test to the console")
+    details.set_defaults(func=summary.details)
 
     # Parse the known arguments (piglit run or piglit summary html for
     # example), and then pass the arguments that this parser doesn't know about

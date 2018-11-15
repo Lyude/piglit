@@ -30,3 +30,4 @@ from __future__ import (
 )
 from .html_ import html, feat
 from .console_ import console
+from .details import details
